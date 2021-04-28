@@ -39,11 +39,17 @@ $$
 Then, from the second reference frame created by that translation, we define,
 
 $$
-{}^1\text{H}_2=\text{Rot}(x,-\theta)\text{Trans}(0,0,\ell_2)=
+{}^1\text{H}_2=\text{Rot}(x,\phi)\text{Rot}(z,h)\text{Trans}(0,0,\ell_2)=
 \begin{bmatrix}
 1 & 0 & 0 & 0\\
-0 & \cos\theta & \sin\theta & 0\\
-0 & -\sin\theta & \cos\theta & 0\\
+0 & \cos\phi & -\sin\phi & 0\\
+0 & \sin\phi & \cos\phi & 0\\
+0 & 0 & 0 & 1
+\end{bmatrix}
+\begin{bmatrix}
+\cos h & -\sin h & 0 & 0\\
+\sin h & \cos h & 0 & 0\\
+0 & 0 & 1 & 0\\
 0 & 0 & 0 & 1
 \end{bmatrix}
 \begin{bmatrix}
@@ -54,14 +60,60 @@ $$
 \end{bmatrix}
 $$
 
-Which works out to be,
+where $\phi$ is the latitute and $h$  the hour angle. *(Note, the [lat. at the Blaauw observatory](https://www.findlatitudeandlongitude.com/) is $\phi=53.24\,\text{deg}$.)*  
+
+We find,
 
 $$
 {}^1\text{H}_2=
 \begin{bmatrix}
-1 & 0 & 0 & 0\\
-0 & \cos\theta & \sin\theta & 0\\
-0 & -\sin\theta & \cos\theta & \ell_2\\
+\cos h & -\sin h & 0 & 0\\
+\cos\phi\sin h & \cos\phi\cos h & -\sin\phi & -\ell_2\sin\phi\\
+\sin\phi\sin h & \sin\phi\cos h & \cos\phi & \ell_2\cos\phi\\
 0 & 0 & 0 & 1
 \end{bmatrix}
 $$
+
+Now, to compute the pose matrix to the center of the telescope aperture, along the declination axis, we have,
+
+$$
+{}^2\text{H}_3=\text{Rot}(x,\delta)\text{Trans}(-\ell_3,0,0)=
+\begin{bmatrix}
+1 & 0 & 0 & 0\\
+0 & \cos\delta & -\sin\delta & 0\\
+0 & \sin\delta & \cos\delta & 0\\
+0 & 0 & 0 & 1
+\end{bmatrix}
+\begin{bmatrix}
+1 & 0 & 0 & \ell_3\\
+0 & 1 & 0 & 0\\
+0 & 0 & 1 & 0\\
+0 & 0 & 0 & 1
+\end{bmatrix}
+$$
+
+Therefore, we find,
+
+$$
+{}^2\text{H}_3=
+\begin{bmatrix}
+1 & 0 & 0 & \ell_3\\
+0 & \cos\delta & -\sin\delta & 0\\
+0 & \sin\delta & \cos\delta & 0\\
+0 & 0 & 0 & 1
+\end{bmatrix}
+$$
+
+If we require the position anywhere else, a distance $y$ from the origin of the 3rd frame, along the optical axis/centre of the telescope, we can do another translation:
+
+$$
+{}^3\text{H}_4=\text{Trans}(0,y,0)=
+\begin{bmatrix}
+1 & 0 & 0 & 0\\
+0 & 1 & 0 & y\\
+0 & 0 & 1 & 0\\
+0 & 0 & 0 & 1
+\end{bmatrix}
+$$
+
+Note that the $y$-axis in the *final* reference frame points along the direction of the telescope's aperture.
