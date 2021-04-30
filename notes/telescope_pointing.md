@@ -5,11 +5,18 @@ Here I describe a method to:
 1. compute the position of the telescope aperture in the dome.
 2. compute the direction the telescope in pointing to in the telescope-dome frame.
 
+To achieve these goals, we use the transformation matrices (defined in one of the other notes), to compute the position of the telescope aperture (on the declination axis of the telescope) in the frame of the dome. Consider the figure below; a rough sketch of the telescope and mount. Note: (0) is the origin of the dome, (1) is the height of the RA axis above the floor of the dome, (2) is the intersection of the RA and Dec axis, (3) is the intersection of the telescope tube center and the declination axis, (4) could be some position along the optical axis of the telescope.
+ 
+![Sketch](background/images/telescope_sketch.png)
+
+|Line segment | Length (mm) |
+| ---         | ---         |
+| $0-1$       |             |
+| $1-2$       |             |
+| $2-3$       |             |
+| $3-4$       | _arbitrary_ |
+
 ## Telescope Position in the Dome
-
-We use the transformation matrices (defined in one of the other notes), to compute the position of the telescope aperture (on the declination axis of the telescope) in the frame of the dome. Consider the figure below; a rough sketch of the telescope and mount.
-
-![Sketch]()
 
 Assume that the center of the dome's floor defines the origin of the first coordinate system we consider. With origin vector,
 
@@ -117,3 +124,21 @@ $$
 $$
 
 Note that the $y$-axis in the *final* reference frame points along the direction of the telescope's aperture.
+
+## Aperture Direction Vector
+
+We can find the direction the telescope (aperture) is pointing in by taking the difference between two points on the telescope's optical axis in the origin frame.
+
+Consider, for instance, the points:
+
+$$\mathbf{r}_t(0)={}^0\text{H}_3\, \mathbf{r}_0$$
+
+and
+
+$$\mathbf{r}_{t}(y)={}^0\text{H}_4(y)\, \mathbf{r}_0$$
+
+noting that the second point is variable and depends on $y$. Then we can define the direction (a unit vector) as,
+
+$$\hat{\mathbf{d}}=\frac{\mathbf{d}}{||\mathbf{d}||}$$
+
+where $\mathbf{d}=\mathbf{r}_t(y)-\mathbf{r}_t(0)$.
