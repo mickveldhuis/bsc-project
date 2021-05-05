@@ -6,3 +6,6 @@ venv/
 # Inventor
 OldVersions/
 *.tmp
+
+# Jypyter notebooks
+.ipynb_checkpoints/
