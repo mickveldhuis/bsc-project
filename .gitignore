@@ -2,7 +2,12 @@
 __pycache__/
 venv/
 *.pyc
+.ipynb_checkpoints/
 
 # Inventor
 OldVersions/
 *.tmp
+
+# Project specific
+*.avi
+*.mp4
