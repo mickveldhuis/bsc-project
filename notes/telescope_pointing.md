@@ -141,4 +141,20 @@ noting that the second point is variable and depends on $y$. Then we can define 
 
 $$\hat{\mathbf{d}}=\frac{\mathbf{d}}{||\mathbf{d}||}$$
 
-where $\mathbf{d}=\mathbf{r}_t(y)-\mathbf{r}_t(0)$.
+where $\mathbf{d}=\mathbf{r}_t(y)-\mathbf{r}_t(0)$. I.e., one could use,
+
+$$\hat{\mathbf{d}}=\big\{\,{}^0\text{H}_4(y)-{}^0\text{H}_4(0)\,\big\}\, \mathbf{r}_0$$
+
+## Sampling the Aperture
+
+To sample the disk-shaped aperture, we can add another transform:
+
+$$
+{}^4\text{H}_5=\text{Trans}(x,0,z)=
+\begin{bmatrix}
+1 & 0 & 0 & x\\
+0 & 1 & 0 & 0\\
+0 & 0 & 1 & z\\
+0 & 0 & 0 & 1
+\end{bmatrix}
+$$
