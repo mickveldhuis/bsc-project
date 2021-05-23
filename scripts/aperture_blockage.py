@@ -48,19 +48,75 @@ def get_transform(ha, dec, x=0, y=-0.5, z=0):
     
     return H
 
+from pytransform3d import rotations as pr
+from pytransform3d import transformations as pt
+
+def get_transform_test(ha, dec, x=0, y=0, z=0):
+    origin = np.array([0, 0, 0])
+
+    H_01 = pt.transform_from(
+        R=pr.matrix_from_axis_angle(np.array([0, 0, 0, 0])),
+        p=np.array([0, 0, L_1])
+    )
+
+    H_12 = pt.transform_from(
+        R=pr.matrix_from_axis_angle(np.array([1, 0, 0, np.radians(90-LAT)])),
+        p=np.array([0,0,0])
+    )
+
+    H_23 = pt.transform_from(
+        R=pr.matrix_from_axis_angle(np.array([0, 0, 1, np.radians(-ha)])),
+        p=np.array([0, 0, L_2])
+    )
+
+    H_34 = pt.transform_from(
+        R=pr.matrix_from_axis_angle(np.array([1, 0, 0, np.radians(dec)])),
+        p=np.array([-L_3, 0, 0])
+    )
+
+    H_45 = pt.transform_from(
+        R=pr.matrix_from_axis_angle(np.array([0, 0, 0, 0])),
+        p=np.array([x, y, z])
+    )
+
+    # H = pt.concat(pt.concat(pt.concat(pt.concat(H_01, H_12), H_23), H_34), H_45)
+    H = H_01 @ H_12 @ H_23 @ H_34 @ H_45
+
+    transformed = pt.transform(H, pt.vector_to_point(origin)) 
+    
+    return vec3(transformed)
+
 def get_aperture(ha, dec, x, z):
     """
     Compute a position in the
     aperture of the telescope.
     """
     origin = vec4(0, 0, 0)
-    pose_matrix = get_transform(ha, dec, x=x, y=0, z=z)
+    pose_matrix = get_transform(ha, dec, x=x, y=0, z=x)
 
     product = pose_matrix @ origin
     
     prod_v3 = vec3(product)
 
     return prod_v3
+
+def get_aperture_test(ha, dec, x, z):
+    """
+    Compute a position in the
+    aperture of the telescope.
+    """
+    # origin = vec4(0, 0, 0)
+    y = np.zeros(x.size)
+    dummy = np.ones(x.size)
+    points = np.column_stack((x, y, z, dummy))
+
+    pose_matrix = get_transform(ha, dec, x=0, y=0, z=0)
+
+    product = pt.transform(pose_matrix, points) 
+    
+    # prod_v3 = vec3(product)
+
+    return product[:, :3]
 
 def get_origins(ha, dec, y_back=-0.3):
     """Compute the origin of each intermediate ref. frame."""
@@ -187,41 +243,29 @@ def correct_az(az):
     
     return az
 
-def is_blocked(origin, ha, dec, dome_az, has_print=False):
+def is_blocked(point, ha, dec, dome_az, has_print=False):
     """
     Return True when the given ray in the aperture is blocked.
     """
     is_b = True
-    
-    # p = vec3(origin)
-    p = origin
-    
-    # print(p)
-
-    # Get the origins of each ref. frame 
-    os = get_origins(ha, dec)[:,:3].reshape(6, 3)
-
-    # Compute dome intersection
-    # tube_center = os[[3,5]][0]
 
     direction = vec3((get_transform(ha, dec, y=1) - get_transform(ha, dec, y=0)) @ vec4(0, 0, 0)) #get_direction(tube_center, os[[3,5]][1])
 
     try:
-        has_intersection, t = find_intersection(p, direction)
+        has_intersection, t = find_intersection(point, direction)
 
         if has_intersection:
-            p_s = get_ray_intersection(p, direction, t)
-            
-            print('ray az = {:.2f} & dome az = {:.2f}'.format(correct_az(np.degrees(compute_azimuth(p_s[0], p_s[1]))), dome_az))
+            p_s = get_ray_intersection(point, direction, t)
             
             ray_az = np.degrees(compute_azimuth(p_s[0], p_s[1])) - dome_az
             slit_offset = np.degrees(get_semi_az(p_s))
 
 
-            slit_az_min = -slit_offset #correct_az(dome_az - slit_offset)
-            slit_az_max = slit_offset #correct_az(dome_az + slit_offset)
+            slit_az_min = -slit_offset
+            slit_az_max = slit_offset
 
             if has_print:
+                print('ray az = {:.2f} & dome az = {:.2f}'.format(correct_az(np.degrees(compute_azimuth(p_s[0], p_s[1]))), dome_az))
                 print('{:.2f} (min) < {:.2f} (ray) < {:.2f} (max)'.format(slit_az_min, ray_az, slit_az_max))
             
             is_ray_in_slit = ray_az > slit_az_min and ray_az < slit_az_max
@@ -234,7 +278,7 @@ def is_blocked(origin, ha, dec, dome_az, has_print=False):
     
     return is_b
  
-v_get_aperture = np.vectorize(get_aperture, signature='(),(),(d),(d)->()') # get_aperture(ha, dec, x, z)
+# v_get_aperture = np.vectorize(get_aperture, signature='(),(),(d),(d)->()')
 v_is_blocked = np.vectorize(is_blocked, signature='(d),(),(),(),()->()')
 
 def calc_blocked_percentage(ha, dec, dome_az, n_rays):
@@ -246,20 +290,7 @@ def calc_blocked_percentage(ha, dec, dome_az, n_rays):
     ap_xz = uniform_disk(APERTURE_RADIUS, n_samples)
     ap_x, ap_z = ap_xz.T
     
-    # print(v_get_aperture(ha, dec, -ap_x, ap_z))
-
-    # ap_pos = np.stack(get_aperture(ha, dec, -ap_x, ap_z)).reshape(n_samples, 3) #v_get_aperture(ha, dec, -ap_x, ap_z)
-    
-    ap_pos = []
-
-    for x, z in zip(ap_x, ap_z):
-        p = get_aperture(ha, dec, -x, z)
-        ap_pos.append(p)
-        
-    ap_pos = np.array(ap_pos)
-    ap_pos = ap_pos[:, :3]
-
-    # print(type(ap_pos))
+    ap_pos = get_aperture_test(ha, dec, -ap_x, ap_z)
 
     blocked = v_is_blocked(ap_pos, ha, dec, dome_az, has_print=False)
     
@@ -272,10 +303,18 @@ if __name__ == '__main__':
     ray_count = int(sys.argv[1])
     
     inventor_az = sys.argv[2]
+
     dome_az = 360 - float(inventor_az)
+    
+    # if int(inventor_az) == 0:
+    #     dome_az = 0
+    
     
     ha, dec = float(sys.argv[3]), float(sys.argv[4])
 
     # ha_test, dec_test = (-50, 10)
 
     blockage_perc = calc_blocked_percentage(ha, dec, dome_az, n_rays=ray_count)
+
+    # print('TEST:', get_transform_test(0, 0))
+    # print('TRUTH:', vec3(get_transform(0, 0, y=0) @ vec4(0, 0, 0)))

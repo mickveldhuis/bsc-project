@@ -16,7 +16,7 @@ def plot_aperture(ap_x, ap_z, is_blocked, aperture_r, dome_az):
     frame.set_ylim(-2*aperture_r, 2*aperture_r)
     frame.set_xlim(-2*aperture_r, 2*aperture_r)
 
-    frame.set_title('$A_d$ = {:.2f} deg'.format(dome_az), fontsize=18)
+    frame.set_title('$A_d$ = {:.2f} deg'.format(float(dome_az) % 360), fontsize=18)
 
     frame.legend(fontsize=12, loc='lower right')
     fig.tight_layout()
