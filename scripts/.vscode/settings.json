@@ -1,3 +1,10 @@
 {
-    "python.pythonPath": "C:\\Users\\Mick Veldhuis\\AppData\\Local\\Programs\\Python\\Python39\\python.exe"
+    "python.pythonPath": "C:\\Users\\Mick Veldhuis\\AppData\\Local\\Programs\\Python\\Python39\\python.exe",
+    "cSpell.words": [
+        "astropy",
+        "isclose",
+        "numpy",
+        "pytransform",
+        "vectorize"
+    ]
 }

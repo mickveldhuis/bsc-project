@@ -69,34 +69,4 @@ def rot_z(angle):
     ])
 
 if __name__ == '__main__':
-    origin = np.array([0, 0, 0])
-
-    H_01 = pt.transform_from(
-        R=pr.matrix_from_axis_angle(np.array([0, 0, 0, 0])),
-        p=np.array([0, 0, L_1])
-    )
-
-    H_12 = pt.transform_from(
-        R=pr.matrix_from_axis_angle(np.array([1, 0, 0, np.radians(90-LAT)])),
-        p=np.array([0,0,0])
-    )
-
-    H_23 = pt.transform_from(
-        R=pr.matrix_from_axis_angle(np.array([0, 0, 1, np.radians(-ha)])),
-        p=np.array([0, 0, L_2])
-    )
-
-    H_34 = pt.transform_from(
-        R=pr.matrix_from_axis_angle(np.array([1, 0, 0, np.radians(dec)])),
-        p=np.array([-L_3, 0, 0])
-    )
-
-    H_45 = pt.transform_from(
-        R=pr.matrix_from_axis_angle(np.array([0, 0, 0, 0])),
-        p=np.array([x, y, z])
-    )
-
-    H = pt.concat(pt.concat(pt.concat(pt.concat(H_01, H_12), H_23), H_34), H_45)
-
-    transformed = pt.transform(H, pt.vector_to_point(origin)) 
-    print(transformed[:3])
+    pass

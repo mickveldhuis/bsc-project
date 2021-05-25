@@ -1,4 +1,6 @@
+from math import exp
 import sys
+import enum
 import configparser
 import numpy as np
 import numpy.linalg as la
@@ -10,7 +12,7 @@ from astropy import units as u
 import datetime
 
 # For coordinate transformations
-from transformations import vec3, vec4, transform, rot_x, rot_y, rot_z
+from transformations import vec3, vec4, transform, rot_x, rot_z
 from visual_helpers import plot_aperture
 
 # CONSTANTS
@@ -21,30 +23,55 @@ config.read('config.ini')
 L_1 = config['mount'].getfloat('length_1') # distance floor-HA axis
 L_2 = config['mount'].getfloat('length_2') # distance HA axis-Dec axis
 L_3 = config['mount'].getfloat('length_3') # distance Dec axis-tube center
+L_4 = config['guider'].getfloat('offset') # distance primary tube center-guider center
+L_5 = config['finder'].getfloat('offset') # distance guider center-finder center
 
-APERTURE_RADIUS = config['telescope'].getfloat('diameter')/2 # m
+GUIDER_ANGLE = np.radians(config['guider'].getfloat('angle'))
+FINDER_ANGLE =  np.radians(config['finder'].getfloat('angle'))
+
+APERTURE_RADIUS = config['telescope'].getfloat('diameter')/2
+GUIDER_RADIUS = config['guider'].getfloat('diameter')/2
+FINDER_RADIUS = config['finder'].getfloat('diameter')/2
 
 # Dome:
-DIAMETER = config['dome'].getfloat('diameter')   # diameter
-RADIUS = DIAMETER/2   # radius
+RADIUS = config['dome'].getfloat('diameter')/2   # radius
 EXTENT = config['dome'].getfloat('extent')  # extent of cylindrical dome wall
-HEIGHT = RADIUS + EXTENT # height of half capsule repr. dome
 SLIT_WIDTH = config['dome'].getfloat('slit_width') # = MODEL / OLD: 1.84 (= measured)  # Slit width
 
-# Obvervatory:
+# Observatory:
 LAT = config['observatory'].getfloat('latitude') # degrees
+
+class Instruments(enum.Enum):
+    """
+    Enum for selecting what aperture
+    to use in the transformation.
+    """
+    TELESCOPE = enum.auto()
+    GUIDER = enum.auto()
+    FINDER = enum.auto()
+
+    @classmethod
+    def get_default(c):
+        return c.TELESCOPE
 
 # ---------------------- #
 #  SECTION 1             #
 # ---------------------- #
 
-def get_transform(ha, dec, x=0, y=-0.5, z=0):
+def get_transform(ha, dec, x=0, y=0, z=0, instrument=Instruments.TELESCOPE):
     H_01 = transform(0, 0, L_1)
     H_12 = rot_x(90-LAT) @ rot_z(-ha) @ transform(0, 0, L_2)
     H_23 = rot_x(dec) @ transform(-L_3, 0, 0)
     H_34 = transform(x, y, z)
+    H_45 = transform(L_4*np.cos(GUIDER_ANGLE), 0, L_4*np.sin(GUIDER_ANGLE))
+    H_56 = transform(-L_5*np.cos(FINDER_ANGLE), 0, L_5*np.sin(FINDER_ANGLE))
     
     H = H_01 @ H_12 @ H_23 @ H_34
+
+    if instrument == Instruments.GUIDER:
+        H = H @ H_45
+    elif instrument == Instruments.FINDER:
+        H = H @ H_45 @ H_56
     
     return H
 
@@ -86,55 +113,20 @@ def get_transform_test(ha, dec, x=0, y=0, z=0):
     
     return vec3(transformed)
 
-def get_aperture(ha, dec, x, z):
+def get_aperture(ha, dec, x, z, instrument=Instruments.TELESCOPE):
     """
     Compute a position in the
     aperture of the telescope.
     """
-    origin = vec4(0, 0, 0)
-    pose_matrix = get_transform(ha, dec, x=x, y=0, z=x)
-
-    product = pose_matrix @ origin
-    
-    prod_v3 = vec3(product)
-
-    return prod_v3
-
-def get_aperture_test(ha, dec, x, z):
-    """
-    Compute a position in the
-    aperture of the telescope.
-    """
-    # origin = vec4(0, 0, 0)
     y = np.zeros(x.size)
     dummy = np.ones(x.size)
     points = np.column_stack((x, y, z, dummy))
-
-    pose_matrix = get_transform(ha, dec, x=0, y=0, z=0)
-
-    product = pt.transform(pose_matrix, points) 
     
-    # prod_v3 = vec3(product)
+    pose_matrix = get_transform(ha, dec, instrument=instrument)
+
+    product = pt.transform(pose_matrix, points)
 
     return product[:, :3]
-
-def get_origins(ha, dec, y_back=-0.3):
-    """Compute the origin of each intermediate ref. frame."""
-    origin = vec4(0, 0, 0)
-    H_01 = transform(0, 0, L_1)
-    H_12 = rot_x(90-LAT) @ rot_z(-ha) @ transform(0, 0, L_2)
-    H_23 = rot_x(dec) @ transform(-L_3, 0, 0)
-    H_34 = transform(0, y_back, 0)
-    H_45 = transform(0, -3*y_back, 0)
-    
-    pose_0 = origin # Dome origin
-    pose_1 = H_01 @ origin # HA axis origin
-    pose_2 = H_01 @ H_12 @ origin # Dec axis origin
-    pose_3 = H_01 @ H_12 @ H_23 @ origin # Center aperture
-    pose_4 = H_01 @ H_12 @ H_23 @ H_34 @ origin # Back aperture
-    pose_5 = H_01 @ H_12 @ H_23 @ H_34 @ H_45 @ origin # Front aperture
-
-    return np.array([pose_0, pose_1,pose_2,pose_3,pose_4, pose_5])
 
 def get_direction(p1, p2):
     d = p2 - p1
@@ -145,7 +137,7 @@ def get_direction(p1, p2):
 def compute_azimuth(x, y):
     """
     Return the azimuth (rad) using
-    the north clockwise conv.
+    the north clockwise convension.
     """
     az = np.arctan2(x, y) # note (x,y) rather than (y,x)
     
@@ -214,27 +206,6 @@ def uniform_disk(r, n):
     
     return xy
 
-def semi_intersection(elev):
-    k = np.power(RADIUS*np.cos(elev), 2) - np.power(SLIT_WIDTH/2, 2)
-    
-    # INTRODUCE PROPER SOLUTION!!!
-    if k < 0:
-        print('Hello neg sqrt here! discriminant =', k, ', (w/2)^2 =', np.power(SLIT_WIDTH/2, 2), ', r*cos(elev) =', RADIUS*np.cos(elev))
-        return 0
-    
-    return np.sqrt(k)
-
-def get_semi_az(p):
-    elev = np.arctan2(p[2] - EXTENT, np.sqrt(p[0]**2 + p[1]**2))
-    
-#     print('elev', np.degrees(elev), ', (x,y) = (', p[0], p[1], ')')
-    
-    y = semi_intersection(elev)
-    x = SLIT_WIDTH/2
-    delta = np.pi/2 - np.arctan2(y, x)
-    
-    return delta
-
 def correct_az(az):
     if az < 0.: 
         az = az + 360.
@@ -255,42 +226,81 @@ def is_blocked(point, ha, dec, dome_az, has_print=False):
         has_intersection, t = find_intersection(point, direction)
 
         if has_intersection:
-            p_s = get_ray_intersection(point, direction, t)
+            points = get_ray_intersection(point, direction, t)
             
-            ray_az = np.degrees(compute_azimuth(p_s[0], p_s[1])) - dome_az
-            slit_offset = np.degrees(get_semi_az(p_s))
+            ray_az = np.degrees(compute_azimuth(points[0], points[1]))
 
+            if ray_az > dome_az + 180:
+                ray_az -= dome_az + 360
+            elif ray_az > dome_az or ray_az < dome_az:
+                ray_az -= dome_az
+
+            # Compute the dome slit - dome hemisphere intersection
+            elev = np.arctan2(points[2] - EXTENT, np.sqrt(points[0]**2 + points[1]**2))
+            
+            y_length_sq = np.power(RADIUS*np.cos(elev), 2) - np.power(SLIT_WIDTH/2, 2)
+
+            if y_length_sq < 0:
+                is_b = False
+
+                return is_b
+
+            y_length = np.sqrt(y_length_sq)
+            x_length = SLIT_WIDTH/2
+            slit_offset_rad = np.pi/2 - np.arctan2(y_length, x_length)
+            
+            # Compute off-set and compare ray az w/ dome position
+            slit_offset = np.degrees(slit_offset_rad)
 
             slit_az_min = -slit_offset
             slit_az_max = slit_offset
 
             if has_print:
-                print('ray az = {:.2f} & dome az = {:.2f}'.format(correct_az(np.degrees(compute_azimuth(p_s[0], p_s[1]))), dome_az))
+                print('ray az = {:.2f} & dome az = {:.2f}'.format(np.degrees(compute_azimuth(points[0], points[1])), dome_az))
                 print('{:.2f} (min) < {:.2f} (ray) < {:.2f} (max)'.format(slit_az_min, ray_az, slit_az_max))
             
             is_ray_in_slit = ray_az > slit_az_min and ray_az < slit_az_max
             
-            if p_s[2] > EXTENT and is_ray_in_slit:
+            if points[2] > EXTENT and is_ray_in_slit:
                 is_b = False
-            
+
+            if not is_ray_in_slit and (ray_az < -90 or ray_az > 90):
+
+                rot = rot_z(dome_az)
+
+                dummy = np.ones(points[0].size)
+                pp = np.column_stack((points[0], points[1], points[2], dummy))
+
+                product = pt.transform(rot, pp)
+                
+                if np.abs(product[:, 0]) < SLIT_WIDTH/2 and np.abs(product[:,1]) < SLIT_WIDTH/2:
+                    is_b = False
+         
     except Exception as ex:
         print(str(ex))
     
     return is_b
- 
-# v_get_aperture = np.vectorize(get_aperture, signature='(),(),(d),(d)->()')
+
 v_is_blocked = np.vectorize(is_blocked, signature='(d),(),(),(),()->()')
 
-def calc_blocked_percentage(ha, dec, dome_az, n_rays):
+def calc_blocked_percentage(ha, dec, dome_az, n_rays, instrument=Instruments.TELESCOPE):
     if n_rays < 1:
         n_samples = 1
     else:
         n_samples = n_rays
 
-    ap_xz = uniform_disk(APERTURE_RADIUS, n_samples)
+    ap_xz = None
+
+    if instrument == Instruments.TELESCOPE:
+        ap_xz = uniform_disk(APERTURE_RADIUS, n_samples)
+    elif instrument == Instruments.GUIDER:
+        ap_xz = uniform_disk(GUIDER_RADIUS, n_samples)
+    elif instrument == Instruments.FINDER:
+        ap_xz = uniform_disk(FINDER_RADIUS, n_samples)
+        
     ap_x, ap_z = ap_xz.T
     
-    ap_pos = get_aperture_test(ha, dec, -ap_x, ap_z)
+    ap_pos = get_aperture(ha, dec, -ap_x, ap_z, instrument=instrument)
 
     blocked = v_is_blocked(ap_pos, ha, dec, dome_az, has_print=False)
     
@@ -299,22 +309,26 @@ def calc_blocked_percentage(ha, dec, dome_az, n_rays):
     return percentage
 
 if __name__ == '__main__':
-    # blockage_perc = calc_blocked_percentage(36, 24, 250)
     ray_count = int(sys.argv[1])
-    
     inventor_az = sys.argv[2]
-
-    dome_az = 360 - float(inventor_az)
-    
-    # if int(inventor_az) == 0:
-    #     dome_az = 0
-    
-    
+    dome_az = (360 - float(inventor_az)) % 360
     ha, dec = float(sys.argv[3]), float(sys.argv[4])
 
-    # ha_test, dec_test = (-50, 10)
+    try:
+        instr = str(sys.argv[5])
+    except:
+        instr = None
 
-    blockage_perc = calc_blocked_percentage(ha, dec, dome_az, n_rays=ray_count)
+    instrument = Instruments.TELESCOPE # Default
 
-    # print('TEST:', get_transform_test(0, 0))
-    # print('TRUTH:', vec3(get_transform(0, 0, y=0) @ vec4(0, 0, 0)))
+    if instr is not None:
+        if instr == 'telescope':
+            instrument = Instruments.TELESCOPE
+        elif instr == 'guider':
+            instrument = Instruments.GUIDER
+        elif instr == 'finder':
+            instrument = Instruments.FINDER    
+
+    # Calculate the % blockage by the dome
+    blockage = calc_blocked_percentage(ha, dec, dome_az, n_rays=ray_count, instrument=instrument)
+    print('There\'s', invalid_counter, 'invalid points in the aperture')
