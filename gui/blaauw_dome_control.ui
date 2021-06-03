@@ -13,7 +13,60 @@
   <property name="windowTitle">
    <string>Blaauw Observatory Dome Control System</string>
   </property>
-  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QGroupBox" name="groupBox">
+    <property name="geometry">
+     <rect>
+      <x>650</x>
+      <y>20</y>
+      <width>120</width>
+      <height>81</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Toggle Apertures</string>
+    </property>
+    <widget class="QCheckBox" name="checkBoxFinder">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>101</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Finderscope</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="checkBoxGuider">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>101</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Autoguider</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="checkBoxTelescope">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>60</y>
+       <width>101</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Telescope</string>
+     </property>
+    </widget>
+   </widget>
+  </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
