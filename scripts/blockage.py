@@ -23,18 +23,15 @@ if __name__ == '__main__':
     blockage = None
 
     if args.aperture == 'telescope':
-        telescope = TelescopeAperture()
-        telescope.set_rate(args.rate)
+        telescope = TelescopeAperture(rate=args.rate)
         blockage = telescope.obstruction(args.ha, args.dec, dome_az)
 
     elif args.aperture == 'guider':
-        guider = GuiderAperture()
-        guider.set_rate(args.rate)
+        guider = GuiderAperture(rate=args.rate)
         blockage = guider.obstruction(args.ha, args.dec, dome_az)
 
     elif args.aperture == 'finder':
-        finder = FinderAperture()
-        finder.set_rate(args.rate)
+        finder = FinderAperture(rate=args.rate)
         blockage = finder.obstruction(args.ha, args.dec, dome_az)
 
     if blockage is not None:

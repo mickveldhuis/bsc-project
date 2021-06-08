@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
+ <author>Mick Veldhuis</author>
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
   <property name="geometry">
@@ -7,75 +8,379 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>600</height>
+    <height>483</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Blaauw Observatory Dome Control System</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QGroupBox" name="groupBox">
+   <widget class="QGroupBox" name="domeStatus">
     <property name="geometry">
      <rect>
-      <x>650</x>
-      <y>20</y>
-      <width>120</width>
-      <height>81</height>
+      <x>10</x>
+      <y>10</y>
+      <width>191</width>
+      <height>141</height>
      </rect>
     </property>
     <property name="title">
-     <string>Toggle Apertures</string>
+     <string>Dome status</string>
     </property>
-    <widget class="QCheckBox" name="checkBoxFinder">
+    <widget class="QLabel" name="azLabel">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>30</y>
+       <width>47</width>
+       <height>13</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Azimuth</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="trackingLabel">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>50</y>
+       <width>101</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Tracking telescope</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="movingLabel">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>70</y>
+       <width>101</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Moving</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="TelescopeStatus">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>160</y>
+      <width>191</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Telescope status</string>
+    </property>
+    <widget class="QLabel" name="RaLabel">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>30</y>
+       <width>31</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Ra</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="DecLabel">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>50</y>
+       <width>31</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Dec</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="RaCounter">
+     <property name="geometry">
+      <rect>
+       <x>70</x>
+       <y>30</y>
+       <width>101</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>+00h00m00s</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="DecCounter">
+     <property name="geometry">
+      <rect>
+       <x>70</x>
+       <y>50</y>
+       <width>101</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>000.000 deg</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="domeControl">
+    <property name="geometry">
+     <rect>
+      <x>240</x>
+      <y>10</y>
+      <width>121</width>
+      <height>161</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Dome commands</string>
+    </property>
+    <widget class="QPushButton" name="parkButton">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>30</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Park</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="initButton">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>60</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Initialize</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="calibrateButton">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>90</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Calibrate</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="stopButton">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>120</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Stop</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGraphicsView" name="domeRadarView">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>270</y>
+      <width>256</width>
+      <height>192</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="groupBox">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>10</y>
+      <width>371</width>
+      <height>181</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Dome control</string>
+    </property>
+    <widget class="QGroupBox" name="InstrumentOptions">
+     <property name="geometry">
+      <rect>
+       <x>230</x>
+       <y>20</y>
+       <width>131</width>
+       <height>91</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Toggle Apertures</string>
+     </property>
+     <widget class="QCheckBox" name="Finder">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>101</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Finderscope</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="Guider">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>40</y>
+        <width>101</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Autoguider</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="Telescope">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>60</y>
+        <width>101</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Telescope</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QPushButton" name="trackButton">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>20</y>
-       <width>101</width>
-       <height>17</height>
+       <width>75</width>
+       <height>23</height>
       </rect>
      </property>
      <property name="text">
-      <string>Finderscope</string>
+      <string>Track</string>
      </property>
     </widget>
-    <widget class="QCheckBox" name="checkBoxGuider">
+    <widget class="QPushButton" name="rotateRightButton">
+     <property name="geometry">
+      <rect>
+       <x>100</x>
+       <y>140</y>
+       <width>41</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>+5</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="azEdit">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>140</y>
+       <width>51</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+     <property name="maxLength">
+      <number>3</number>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="rotateLeftButton">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>40</y>
-       <width>101</width>
-       <height>17</height>
+       <y>140</y>
+       <width>41</width>
+       <height>23</height>
       </rect>
      </property>
      <property name="text">
-      <string>Autoguider</string>
+      <string>-5</string>
      </property>
     </widget>
-    <widget class="QCheckBox" name="checkBoxTelescope">
+    <widget class="QPushButton" name="gotoButton">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>60</y>
-       <width>101</width>
-       <height>17</height>
+       <y>110</y>
+       <width>131</width>
+       <height>23</height>
       </rect>
      </property>
      <property name="text">
-      <string>Telescope</string>
+      <string>Go to</string>
      </property>
     </widget>
    </widget>
-  </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>800</width>
-     <height>21</height>
-    </rect>
-   </property>
+   <widget class="QScrollArea" name="logArea">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>270</y>
+      <width>431</width>
+      <height>181</height>
+     </rect>
+    </property>
+    <property name="widgetResizable">
+     <bool>true</bool>
+    </property>
+    <widget class="QWidget" name="scrollAreaWidgetContents">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>429</width>
+       <height>179</height>
+      </rect>
+     </property>
+     <widget class="QTextEdit" name="log">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>431</width>
+        <height>181</height>
+       </rect>
+      </property>
+      <property name="html">
+       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;23:42:30 Connection made with the dome server @ IP:PORT&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;23:53:20 Calibration started...&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+    </widget>
+   </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>

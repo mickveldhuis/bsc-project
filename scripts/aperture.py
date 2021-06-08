@@ -126,6 +126,9 @@ class Aperture:
         return H
     
     def _uniform_disk(self, r_min=0):
+        """
+        Sample points on a disk, uniformly.
+        """
         radii  = np.random.uniform(0, 1, self.sample_rate)
         angles = np.random.uniform(0, 2*np.pi, self.sample_rate)
         
@@ -138,6 +141,48 @@ class Aperture:
             cond = x**2 + y**2 > r_min
             xy = xy[cond]
 
+        return xy
+
+    def _equidistant_disk(self, r_min=0):
+        """Equidistant disk sampling based on:
+            http://www.holoborodko.com/pavel/2015/07/23/generating-equidistant-points-on-unit-disk/
+        """
+    
+        if not 0 <= r_min < 1:
+            raise ValueError('r_min should be between 0 and 1...')
+        
+        dr = 1/self.sample_rate
+        
+        x = np.empty(0)
+        y = np.empty(0)
+        
+        rs = np.linspace(r_min, 1, self.sample_rate) 
+        k = np.ceil(r_min*(self.sample_rate+1))
+        
+        if not r_min:
+            x = np.concatenate([x, [0]])
+            y = np.concatenate([y, [0]])
+            
+            rs = np.linspace(dr, 1, self.sample_rate)
+            k = 1
+        
+        for r in rs:
+            n = int(np.round(np.pi/np.arcsin(1/(2*k))))
+            
+            theta = np.linspace(0, 2*np.pi, n+1)
+            
+            x_r = r * np.cos(theta)
+            y_r = r * np.sin(theta)
+            
+            x = np.concatenate([x, x_r])
+            y = np.concatenate([y, y_r])
+            
+            k += 1
+        
+        xy = self.radius*np.column_stack([x,y])
+        
+        # print('Generated {} points on a circle'.format(x.size))
+        
         return xy
     
     def _sample_aperture(self, ha, dec, x, z):
@@ -237,7 +282,9 @@ class Aperture:
         ratio = None
         
         # Sample points in a disk; resembling the aperture
-        ap_xz = self._uniform_disk(self.radius)
+        ap_xz = self._equidistant_disk(self.radius)
+        # ap_xz = self._uniform_disk(self.radius)
+        
         ap_x, ap_z = ap_xz.T
 
         # Transfor those points to the aperture frame
