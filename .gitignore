@@ -1,8 +1,9 @@
 # Python
 __pycache__/
 venv/
-*.pyc
 .ipynb_checkpoints/
+*.pyc
+*.joblib
 
 # Inventor
 OldVersions/
@@ -11,3 +12,4 @@ OldVersions/
 # Project specific
 *.avi
 *.mp4
+*.zip

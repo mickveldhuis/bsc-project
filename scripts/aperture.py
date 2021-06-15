@@ -113,6 +113,8 @@ class Aperture:
         self.radius = radius
         self.sample_rate = rate
 
+        self._name = None
+
         # Add a vectorized instance of the _is_ray_blocked function
         self._is_blocked = np.vectorize(self._is_ray_blocked, signature='(d),(),(),(),()->()')
 
@@ -296,16 +298,23 @@ class Aperture:
         ratio = blocked[blocked].size/blocked.size
 
         return ratio
+    
+    def get_name(self):
+        return self._name
 
 class TelescopeAperture(Aperture):
     def __init__(self, rate=100):
         # TODO: load & set telescope info
         super().__init__(APERTURE_RADIUS, rate=rate)
+        
+        self._name = 'telescope'
 
 class GuiderAperture(Aperture):
     def __init__(self, rate=100):
         # TODO: load & set telescope info
         super().__init__(GUIDER_RADIUS, rate=rate)
+
+        self._name = 'guider'
 
     def _transform(self, ha, dec):
         # Transform telescope aperture to guider aperture
@@ -322,6 +331,8 @@ class FinderAperture(Aperture):
     def __init__(self, rate=100):
         # TODO: load & set telescope info
         super().__init__(FINDER_RADIUS, rate=rate)
+
+        self._name = 'finder'
 
     def _transform(self, ha, dec):
         # Transform telescope aperture to guider aperture & guider to finder

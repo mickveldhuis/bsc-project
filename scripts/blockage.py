@@ -16,23 +16,20 @@ parser.add_argument('-r', '--rate', action='store', type=int, default=100, help=
 
 args = parser.parse_args()
 
-if __name__ == '__main__':
-    # TODO: don't input inventor az, but actual az... only for testing rn...
-    dome_az = (360 - args.az) % 360 # args.az = inventor azimuth -> convert to true azimuth
-    
+if __name__ == '__main__':    
     blockage = None
 
     if args.aperture == 'telescope':
         telescope = TelescopeAperture(rate=args.rate)
-        blockage = telescope.obstruction(args.ha, args.dec, dome_az)
+        blockage = telescope.obstruction(args.ha, args.dec, args.az)
 
     elif args.aperture == 'guider':
         guider = GuiderAperture(rate=args.rate)
-        blockage = guider.obstruction(args.ha, args.dec, dome_az)
+        blockage = guider.obstruction(args.ha, args.dec, args.az)
 
     elif args.aperture == 'finder':
         finder = FinderAperture(rate=args.rate)
-        blockage = finder.obstruction(args.ha, args.dec, dome_az)
+        blockage = finder.obstruction(args.ha, args.dec, args.az)
 
     if blockage is not None:
         print('obstruction = {:.2%}'.format(blockage))
