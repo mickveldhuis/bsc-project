@@ -16,9 +16,10 @@ args = parser.parse_args()
 
 # Constants for generating/saving the data
 APERTURE_NAME = args.aperture
-DATE_SIGNATURE = datetime.now().strftime('%d_%h_%Y')
-OBSTR_DATA_FILE = Path.cwd().parent / 'notebooks' / 'analysis' / 'data' / 'obstruction_cube_{}_{}.npy'.format(APERTURE_NAME, DATE_SIGNATURE)
-OPT_DATA_FILE = Path.cwd() / 'data' / 'optimal_azimuth_{}_{}.csv'.format(APERTURE_NAME, DATE_SIGNATURE)
+LOAD_DATE_SIGNATURE = '14_Jun_2021'
+STORE_DATE_SIGNATURE = datetime.now().strftime('%d_%h_%Y')
+OBSTR_DATA_FILE = Path.cwd().parent / 'notebooks' / 'analysis' / 'data' / 'obstruction_cube_{}_{}.npy'.format(APERTURE_NAME, LOAD_DATE_SIGNATURE)
+OPT_DATA_FILE = Path.cwd() / 'data' / 'optimal_azimuth_{}_{}.csv'.format(APERTURE_NAME, STORE_DATE_SIGNATURE)
 
 obstruction_data = None
 
@@ -49,31 +50,49 @@ dec_range = np.arange(dec_zero.min(), dec_zero.max() + 1, 1)
 #        BIG BOY STUFF       # 
 # -------------------------- #
 
+# def ha_dist(ha_array, ha_0):
+#     try:
+#         start = np.argwhere(np.isclose(ha_array, ha_0)).ravel()[0]
+#     except IndexError:
+#         return -1
+    
+#     diff = np.diff(ha_array)
+#     diff_shifted = diff[start:]
+    
+#     if not diff_shifted.size:
+#         return 0
+
+#     if np.all(np.isclose(diff_shifted, 1)):
+#         return diff_shifted.size
+
+#     breaks = np.argwhere(~np.isclose(diff_shifted, 1)).ravel()
+#     ha_dist = breaks[0]
+
+#     if np.isclose(diff_shifted[ha_dist], -359):
+#         if breaks.size > 1:
+#             return diff_shifted[:breaks[1]].size
+        
+#         return diff_shifted.size
+
+#     return ha_dist
+
 def ha_dist(ha_array, ha_0):
     try:
+        # Verify that the initial HA is indeed an option in ha_array
         start = np.argwhere(np.isclose(ha_array, ha_0)).ravel()[0]
     except IndexError:
         return -1
+
+    ha_shifted = (ha_array - ha_0) % 360 # Set ha_0 to be 0
+    ha_shifted.sort()
     
-    diff = np.diff(ha_array)
-    diff_shifted = diff[start:]
+    idx = np.argwhere(~np.isclose(np.diff(ha_shifted), 1)).ravel()
+
+    if idx.size > 0:
+        return ha_shifted[:idx[0]].size
     
-    if not diff_shifted.size:
-        return 0
+    return ha_shifted.size
 
-    if np.all(np.isclose(diff_shifted, 1)):
-        return diff_shifted.size
-
-    breaks = np.argwhere(~np.isclose(diff_shifted, 1)).ravel()
-    ha_dist = breaks[0]
-
-    if np.isclose(diff_shifted[ha_dist], -359):
-        if breaks.size > 1:
-            return diff_shifted[:breaks[1]].size
-        
-        return diff_shifted.size
-
-    return ha_dist
 
 def optimal_az(az_options, ha, dec):
     dec_sel = np.argwhere(np.isclose(dec_zero, dec)).ravel()
