@@ -347,6 +347,21 @@ class MainWindow(QtWidgets.QMainWindow):
         msg = 'Change azimuth by -5 degrees'
         self._log_message(msg)
 
+    def on_aperture_changed(self, aperture):
+        """
+        Ran when the aperture selection combobox 
+        state is changed.
+        """
+
+        if aperture == 'Telescope':
+            self._log_message('Change tracking to focus on the telescope..!')
+        elif aperture == 'Telescope + Guider':
+            self._log_message('Change tracking to focus on the telescope & autoguider..!')
+        elif aperture == 'Finder':
+            self._log_message('Change tracking to focus on the finder..!')
+        else:
+            self._log_message('ERROR... Selecting unknown aperture!')
+
 def main():
     """Launching the Qt app"""
     app = QtWidgets.QApplication([])
