@@ -1,6 +1,6 @@
 import argparse
 
-from aperture import TelescopeAperture, GuiderAperture, FinderAperture
+from src.aperture import TelescopeAperture, GuiderAperture, FinderAperture
 
 parser = argparse.ArgumentParser(
             allow_abbrev=True, 

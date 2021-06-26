@@ -2,15 +2,8 @@ import enum
 import configparser
 import numpy as np
 
-# # For astro conversions
-# from astropy.coordinates import EarthLocation
-# from astropy.time import Time
-# from astropy import units as u
-# import datetime
-
 # For coordinate transformations
 from transformations import vec3, vec4, transform, rot_x, rot_z
-
 from pytransform3d import transformations as pt
 
 # CONSTANTS

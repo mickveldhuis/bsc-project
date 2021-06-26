@@ -93,7 +93,6 @@ def ha_dist(ha_array, ha_0):
     
     return ha_shifted.size
 
-
 def optimal_az(az_options, ha, dec):
     dec_sel = np.argwhere(np.isclose(dec_zero, dec)).ravel()
     

@@ -1,6 +1,4 @@
 import numpy as np
-from pytransform3d import rotations as pr
-from pytransform3d import transformations as pt
 
 def vec4(x, y, z):
     """
